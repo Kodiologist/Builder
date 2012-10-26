@@ -51,6 +51,8 @@ my $o = new Tversky
 
     after_consent_prep => sub
        {my $o = shift;
+        $o->randomly_assign('model',
+            'expk.rho', 'ghmk.rho', 'diff', 'sr');
         my @tq = shuffle @test_quartets;
         # Add catch trials at the beginning, middle, and end.
         splice @tq, 3, 0, '25,5,20,7';
@@ -101,7 +103,7 @@ $o->run(sub
             Rserve::Connection->init;
             my $prev_choice = $o->maybe_getu('adaptive_choice.' . ($trial - 1));
             my $result = $rserve->call('get_next_quartet',
-                modelname => 'ghmk.rho',
+                modelname => $o->getu('model'),
                 subject => $o->sn + 0,
                 trial => $trial + 0,
                 prev_choose_ll => defined($prev_choice)
