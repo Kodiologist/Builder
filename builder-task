@@ -1,0 +1,152 @@
+#!/usr/bin/perl -T
+
+my %p;
+%p = @ARGV; s/,\z// foreach values %p; # DEPLOYMENT SCRIPT EDITS THIS LINE
+
+#use warnings; BEGIN {@ARGV or open STDERR, '>', '/tmp/cgi-error.txt' or die};
+use strict;
+
+use Tversky 'shuffle';
+use Rserve::Connection;
+
+# ------------------------------------------------
+
+my $monthlen = 30.4375;
+
+=for comment
+
+I constructed @test_quartets like this:
+
+    adaptive.delays = c(1, 2, 3, 4, 5, 7, 10, 2*7, 3*7,
+        monthlen, 6*7, 2*monthlen, 3*monthlen, 4*monthlen)
+    pt.quartets = expand.grid(        # Cartesian product
+        ssr = seq(5, 100, by = 5),    # 5, 10, 15, …, 100
+        ssd = c(0, adaptive.delays),
+        llr = c(1, 5, 5, 10, 10, seq(15, 80, by = 5)),
+        lld = adaptive.delays)
+    pt.quartets = transform(
+        ss(pt.quartets, lld > ssd),
+        llr = ssr + llr)
+    x = samprows(pt.quartets, 100)
+
+=cut
+
+my @test_quartets = do {no warnings 'qw'; qw(15,0,80,7 10,3,50,7 30,3,31,5 25,2,50,14 80,1,85,121.75 30,4,85,121.75 80,5,135,121.75 40,0,80,91.3125 95,3,100,7 25,0,105,10 30,7,40,56 70,3,120,10 15,60.875,20,91.3125 95,10,105,121.75 50,0,65,2 80,3,85,30.4375 95,2,155,60.875 45,3,70,7 25,0,85,91.3125 40,91.3125,50,121.75 25,2,30,21 15,5,95,21 30,0,70,2 15,5,60,7 25,10,100,30.4375 25,0,50,4 80,5,160,14 20,0,45,10 95,0,120,5 40,2,110,91.3125 90,4,125,7 85,0,86,3 70,4,80,5 80,14,85,56 35,0,80,4 25,56,35,91.3125 80,0,115,5 45,2,46,30.4375 10,60.875,20,121.75 60,4,140,30.4375 40,5,110,60.875 85,7,130,121.75 5,56,65,60.875 20,3,40,7 20,10,70,21 55,3,90,5 100,7,170,14 10,2,25,91.3125 90,7,100,14 35,4,70,21 90,60.875,130,91.3125 85,56,110,121.75 95,0,140,1 55,30.4375,130,91.3125 20,0,90,10 60,21,65,121.75 70,10,85,14 5,5,35,14 30,21,90,56 60,3,115,60.875 60,10,90,21 40,0,105,1 80,14,81,56 15,2,75,14 75,1,85,3 75,7,76,30.4375 50,5,75,30.4375 10,4,85,91.3125 80,0,95,5 90,30.4375,150,121.75 25,7,30,21 85,4,90,60.875 20,0,30,21 95,1,160,91.3125 25,30.4375,30,56 5,2,60,14 10,14,55,121.75 10,10,15,60.875 15,0,25,1 20,21,25,121.75 100,21,115,60.875 45,0,125,1 70,3,105,30.4375 90,4,135,60.875 75,0,140,2 100,0,140,121.75 55,14,120,60.875 60,7,140,60.875 40,3,85,7 60,5,120,14 95,56,96,60.875 80,7,105,21 95,10,100,91.3125 40,3,110,21 70,1,90,121.75 70,10,80,56 95,14,160,56 75,1,125,60.875 80,14,150,91.3125 10,7,60,10)};
+
+sub whole
+   {abs($_[0] - int($_[0])) < 1e-12}
+
+# ------------------------------------------------
+
+my $o = new Tversky
+   (cookie_name_suffix => 'Builder',
+    here_url => $p{here_url},
+    database_path => $p{database_path},
+    consent_path => $p{consent_path},
+    task_version => $p{task_version},
+
+    tables =>
+       {subjects => 'Subjects', mturk => 'MTurk',
+        timing => 'Timing', user => 'D'},
+
+    after_consent_prep => sub
+       {my $o = shift;
+        my @tq = shuffle @test_quartets;
+        # Add catch trials at the beginning, middle, and end.
+        splice @tq, 3, 0, '25,5,20,7';
+          # 3 here is a small but essentially arbitrary number.
+        splice @tq, int(@tq/2), 0, '60,0,60,3';
+        push @tq, '55,14,40,21';
+        $o->save('test_quartets', join ';', @tq);},
+
+    head => do {local $/; <DATA>},
+    footer => "\n\n\n</body></html>\n",
+
+    mturk => $p{mturk},
+    assume_consent => $p{assume_consent});
+
+sub decision
+   {my ($key, $ssr, $ssd, $llr, $lld) = @_;
+    # Format delays.
+    foreach ($ssd, $lld)
+       {$_ = 
+            $_ == 0             ? 'today'
+          : whole($_/7)         ? sprintf('in %d week%s', $_/7, $_ > 7 ? 's' : '')
+          : whole($_/$monthlen) ? sprintf('in %d month%s', $_/$monthlen, $_ > $monthlen ? 's' : '')
+          :                       sprintf('in %d day%s', $_, $_ > 1 ? 's' : '');}
+    # Present the choices.
+    $o->shuffled_multiple_choice_page($key,
+        '<p>Which would you prefer?</p>',
+        ss => "\$$ssr $ssd",
+        ll => "\$$llr $lld");}
+
+$o->run(sub
+   {# Administer a standard set of test quartets in a random order.
+    $o->loop('test_trial_iter', sub
+       {my $trial = $_ + 1;
+        my @shuffled_test_quartets = split qr/;/, $o->getu('test_quartets');
+        decision "test_choice.$trial",
+            split qr/,/, $shuffled_test_quartets[$_];
+        $trial == @shuffled_test_quartets and $o->last;});
+
+    # Adaptively estimate a choice model.
+    $o->loop('adaptive_trial_iter', sub
+       {my $trial = $_ + 1;
+        my $quartet = $o->maybe_getu("adaptive_quartet.$trial");
+        my ($ssr, $ssd, $llr, $lld);
+        if (defined $quartet)
+           {($ssr, $ssd, $llr, $lld) = split /\s/, $quartet;}
+        else
+           {my $rserve = new Rserve::Connection('localhost') or die;
+            Rserve::Connection->init;
+            my $prev_choice = $o->maybe_getu('adaptive_choice.' . ($trial - 1));
+            my $result = $rserve->call('get_next_quartet',
+                modelname => 'ghmk.rho',
+                subject => $o->sn + 0,
+                trial => $trial + 0,
+                prev_choose_ll => defined($prev_choice)
+                  ? $prev_choice eq 'll' ? 1 : 0
+                  : undef);
+            ($ssr, $ssd, $llr, $lld) = @{$result->{quartet}}{qw(ssr ssd llr lld)};
+            $o->save("adaptive_quartet.$trial", "$ssr $ssd $llr $lld");
+            $result->{final_trial} and $o->save('final_adaptive_trial', 1);}
+        decision "adaptive_choice.$trial", $ssr, $ssd, $llr, $lld;
+        $o->existsu('final_adaptive_trial') and $o->last;});});
+
+__DATA__
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Decision-Making</title>
+
+<style type="text/css">
+
+    h1, form, div.expbody p
+       {text-align: center;}
+
+    div.expbody p.long
+       {text-align: left;}
+
+    input.consent_statement
+       {border: thin solid black;
+        background-color: white;
+        color: black;
+        margin-bottom: .5em;}
+
+    div.multiple_choice_box
+       {display: table;
+        margin-left: auto; margin-right: auto;}
+    div.multiple_choice_box > div.row
+       {display: table-row;}
+    div.multiple_choice_box > div.row > div
+       {display: table-cell;}
+    div.multiple_choice_box > div.row > div.button
+       {padding-right: 1em;
+        vertical-align: middle;}
+    div.multiple_choice_box > div.row > div.body
+       {text-align: left;
+        vertical-align: middle;}
+
+    textarea.text_entry
+       {width: 90%;}
+
+</style>
