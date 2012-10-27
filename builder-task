@@ -100,7 +100,9 @@ $o = new Tversky
     footer => "\n\n\n</body></html>\n",
 
     mturk => $p{mturk},
-    assume_consent => $p{assume_consent});
+    assume_consent => $p{assume_consent},
+    password_hash => $p{password_hash},
+    password_salt => $p{password_salt});
 
 $o->run(sub
    {$o->okay_page('instructions', cat map {"<p class='long'>$_</p>"}
