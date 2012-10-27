@@ -6,7 +6,7 @@ my %p;
 #use warnings; BEGIN {@ARGV or open STDERR, '>', '/tmp/cgi-error.txt' or die};
 use strict;
 
-use Tversky 'shuffle';
+use Tversky 'cat', 'shuffle';
 use Rserve::Connection;
 
 # ------------------------------------------------
@@ -103,7 +103,13 @@ $o = new Tversky
     assume_consent => $p{assume_consent});
 
 $o->run(sub
-   {# Administer a standard set of test quartets in a random order.
+   {$o->okay_page('instructions', cat map {"<p class='long'>$_</p>"}
+        'In this experiment, you will answer a series of questions.',
+        'Each trial will present you with a hypothetical choice between two amounts of money delivered to you at a given time in the future. Press the button for the option you would prefer.',
+        'Even though these are completely hypothetical decisions, try your best to imagine what you would choose if you were really offered these choices.',
+        q(For technical reasons, it may take a while after you press a button to get the next trial. Please don't press the button again, or it'll take longer.));
+
+    # Administer a standard set of test quartets in a random order.
     $o->loop('test_trial_iter', sub
        {my $trial = $_ + 1;
         $global_trial_n = $trial;
