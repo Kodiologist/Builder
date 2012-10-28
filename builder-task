@@ -111,6 +111,13 @@ $o->run(sub
         'Even though these are completely hypothetical decisions, try your best to imagine what you would choose if you were really offered these choices.',
         'For technical reasons, it may take a while after you press a button to get the next trial.');
 
+    $o->maybe_getu('started_tunnel')
+        or system $p{open_tunnel_cmd};
+          # We don't check to see if the command ran successfully
+          # because in most cases it will fail because the tunnel
+          # is already open.
+    $o->save('started_tunnel', 1);
+
     # Administer a standard set of test quartets in a random order.
     $o->loop('test_trial_iter', sub
        {my $trial = $_ + 1;
