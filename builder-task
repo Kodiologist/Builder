@@ -109,7 +109,7 @@ $o->run(sub
         'In this experiment, you will answer a series of questions.',
         'Each trial will present you with a hypothetical choice between two amounts of money delivered to you at a given time in the future. Press the button for the option you would prefer.',
         'Even though these are completely hypothetical decisions, try your best to imagine what you would choose if you were really offered these choices.',
-        q(For technical reasons, it may take a while after you press a button to get the next trial. Please don't press the button again, or it'll take longer.));
+        'For technical reasons, it may take a while after you press a button to get the next trial.');
 
     # Administer a standard set of test quartets in a random order.
     $o->loop('test_trial_iter', sub
