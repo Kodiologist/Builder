@@ -1,12 +1,13 @@
 create table Subjects
    (sn                              integer primary key,
-    cookie_id         text          not null unique,
+    experimenter      text,
+    cookie_id         integer       not null unique,
     cookie_expires_t  integer       not null,
     ip                text          not null,
     consented_t       integer       not null,
     task_version      text          not null,
     completed_t       integer,
-    completion_key    text);
+    completion_key    integer);
 
 create table MTurk
    (sn              integer         unique
