@@ -148,6 +148,7 @@ $o->run(sub
                   : undef);
             ($ssr, $ssd, $llr, $lld) = @{$result->{quartet}}{qw(ssr ssd llr lld)};
             $o->save("adaptive_quartet.$trial", "$ssr $ssd $llr $lld");
+            $trial == 1 and $o->save('adaptive_server_version', $result->{server_version});
             $result->{final_trial} and $o->save('final_adaptive_trial', 1);}
         decision "adaptive_choice.$trial", $ssr, $ssd, $llr, $lld;
         $o->existsu('final_adaptive_trial') and $o->last;});});
