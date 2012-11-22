@@ -124,7 +124,7 @@ $o->run(sub
         my @shuffled_test_quartets = split qr/;/, $o->getu('test_quartets');
         decision "test_choice.$trial",
             split qr/,/, $shuffled_test_quartets[$_];
-        $trial == @shuffled_test_quartets and $o->last;});
+        $trial == @shuffled_test_quartets and $o->done;});
 
     # Adaptively estimate a choice model.
     $o->loop('adaptive_trial_iter', sub
@@ -142,7 +142,7 @@ $o->run(sub
             $trial == 1 and $o->save('adaptive_server_version', $result->{server_version});
             $result->{final_trial} and $o->save('final_adaptive_trial', 1);
             join ' ', @{$result->{quartet}}{qw(ssr ssd llr lld)}});
-        $o->existsu('final_adaptive_trial') and $o->last;});});
+        $o->existsu('final_adaptive_trial') and $o->done;});});
 
 __DATA__
 
