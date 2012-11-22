@@ -142,7 +142,18 @@ $o->run(sub
             $trial == 1 and $o->save('adaptive_server_version', $result->{server_version});
             $result->{final_trial} and $o->save('final_adaptive_trial', 1);
             join ' ', @{$result->{quartet}}{qw(ssr ssd llr lld)}});
-        $o->existsu('final_adaptive_trial') and $o->done;});});
+        $o->existsu('final_adaptive_trial') and $o->done;});
+
+    # Ask some demographic questions.
+    $o->buttons_page('gender',
+        q(<p>Okay, now for a few demographic questions and you're done.</p>) .
+            '<p>Are you male or female?</p>',
+        'Male', 'Female');
+    $o->nonneg_int_entry_page('age',
+        '<p>How old are you?</p>');
+    $o->buttons_page('handedness',
+        '<p>Are you left- or right-handed?</p>',
+        'Left-handed', 'Right-handed');});
 
 __DATA__
 
