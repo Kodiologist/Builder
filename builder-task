@@ -41,7 +41,7 @@ my @test_quartets = do {no warnings 'qw'; qw(15,0,80,7 10,3,50,7 30,3,31,5 25,2,
 # ------------------------------------------------
 
 my $o; # Will be our Tversky object.
-my $global_trial_n;
+my $global_trial_n = 0;
 
 my $monthlen = 30.4375;
 
@@ -82,6 +82,9 @@ $o = new Tversky
     tables =>
        {subjects => 'Subjects', mturk => 'MTurk',
         timing => 'Timing', user => 'D'},
+
+    preview => sub
+       {decision undef, 20, 10, 40, 21;},
 
     after_consent_prep => sub
        {my $o = shift;
