@@ -131,11 +131,7 @@ $o->run(sub
     $o->loop('adaptive_trial_iter', sub
        {my $trial = $_ + 1;
         $global_trial_n = $o->get_loop_iters('test_trial_iter') + $trial;
-        my $quartet = $o->maybe_getu("adaptive_quartet.$trial");
-        my ($ssr, $ssd, $llr, $lld);
-        if (defined $quartet)
-           {($ssr, $ssd, $llr, $lld) = split /\s/, $quartet;}
-        else
+        decision "adaptive_choice.$trial", split /\s/, $o->save_once("adaptive_quartet.$trial", sub
            {my $rserve = new Rserve::Connection('localhost') or die;
             Rserve::Connection->init;
             my $prev_choice = $o->maybe_getu('adaptive_choice.' . ($trial - 1));
@@ -146,11 +142,9 @@ $o->run(sub
                 prev_choose_ll => defined($prev_choice)
                   ? $prev_choice eq 'll' ? 1 : 0
                   : undef);
-            ($ssr, $ssd, $llr, $lld) = @{$result->{quartet}}{qw(ssr ssd llr lld)};
-            $o->save("adaptive_quartet.$trial", "$ssr $ssd $llr $lld");
             $trial == 1 and $o->save('adaptive_server_version', $result->{server_version});
-            $result->{final_trial} and $o->save('final_adaptive_trial', 1);}
-        decision "adaptive_choice.$trial", $ssr, $ssd, $llr, $lld;
+            $result->{final_trial} and $o->save('final_adaptive_trial', 1);
+            join ' ', @{$result->{quartet}}{qw(ssr ssd llr lld)}});
         $o->existsu('final_adaptive_trial') and $o->last;});});
 
 __DATA__
