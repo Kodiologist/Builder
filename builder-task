@@ -7,7 +7,6 @@ my %p;
 use strict;
 
 use Tversky 'cat', 'shuffle';
-use Rserve::Connection;
 
 # ------------------------------------------------
 # Parameters
@@ -132,10 +131,8 @@ $o->run(sub
        {my $trial = $_ + 1;
         $global_trial_n = $o->get_loop_iters('test_trial_iter') + $trial;
         decision "adaptive_choice.$trial", split /\s/, $o->save_once("adaptive_quartet.$trial", sub
-           {my $rserve = new Rserve::Connection('localhost') or die;
-            Rserve::Connection->init;
-            my $prev_choice = $o->maybe_getu('adaptive_choice.' . ($trial - 1));
-            my $result = $rserve->call('get_next_quartet',
+           {my $prev_choice = $o->maybe_getu('adaptive_choice.' . ($trial - 1));
+            my $result = $o->rserve_call('get_next_quartet',
                 modelname => $o->getu('model'),
                 subject => $o->sn + 0,
                 trial => $trial + 0,
