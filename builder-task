@@ -89,7 +89,7 @@ $o = new Tversky
     after_consent_prep => sub
        {my $o = shift;
         $o->randomly_assign('model',
-            'expk.rho', 'ghmk.rho');
+            'expk.rho', 'ghmk.rho', 'diff.rho', 'sr.rho');
         my @tq = shuffle @test_quartets;
         # Add catch trials at the beginning, middle, and end.
         splice @tq, 3, 0, '25,5,20,7';
