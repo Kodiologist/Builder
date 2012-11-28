@@ -1,0 +1,23 @@
+title: Intertemporal Choice
+
+description: This is a psychology experiment about decision-making. Should you consent to the procedure, your task will be to indicate for each of several pairs of hypothetical gifts which you would prefer. The task should take less than 20 minutes.
+
+keywords:
+- experiment
+- psychology
+- decision-making
+- money
+- economics
+- time
+
+reward: 0.50
+duration: 1 h
+
+qualifications:
+- PercentAssignmentsApproved > 90
+- Locale == US
+
+question_frame_height: 450
+
+lifetime: 7 d
+approval_delay: 14 d
