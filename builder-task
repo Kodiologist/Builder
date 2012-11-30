@@ -77,11 +77,7 @@ $o = new Tversky
     here_url => $p{here_url},
     database_path => $p{database_path},
     consent_path => $p{consent_path},
-    task_version => $p{task_version},
-
-    tables =>
-       {subjects => 'Subjects', mturk => 'MTurk',
-        timing => 'Timing', user => 'D'},
+    task => $p{task},
 
     preview => sub
        {decision undef, 20, 10, 40, 21;},
