@@ -84,8 +84,6 @@ $o = new Tversky
 
     after_consent_prep => sub
        {my $o = shift;
-        $o->randomly_assign('model',
-            'expk.rho', 'ghmk.rho', 'diff.rho', 'sr.rho');
         my @tq = shuffle @test_quartets;
         # Add catch trials at the beginning, middle, and end.
         splice @tq, 3, 0, '25,5,20,7';
@@ -109,12 +107,12 @@ $o->run(sub
         'Even though these are completely hypothetical decisions, try your best to imagine what you would choose if you were really offered these choices.',
         'For technical reasons, it may take a while after you press a button to get the next trial.');
 
-    $o->maybe_getu('started_tunnel')
-        or system $p{open_tunnel_cmd};
+    unless ($o->maybe_getu('started_tunnel'))
+       {system $p{open_tunnel_cmd};
           # We don't check to see if the command ran successfully
           # because in most cases it will fail because the tunnel
           # is already open.
-    $o->save('started_tunnel', 1);
+        $o->save('started_tunnel', 1);}
 
     # Administer a standard set of test quartets in a random order.
     $o->loop('test_trial_iter', sub
@@ -132,7 +130,7 @@ $o->run(sub
         decision "adaptive_choice.$trial", split /\s/, $o->save_once("adaptive_quartet.$trial", sub
            {my $prev_choice = $o->maybe_getu('adaptive_choice.' . ($trial - 1));
             my $result = $o->rserve_call('get_next_quartet',
-                modelname => $o->getu('model'),
+                modelname => $o->get_condition('model'),
                 subject => $o->sn + 0,
                 trial => $trial + 0,
                 prev_choose_ll => defined($prev_choice)
