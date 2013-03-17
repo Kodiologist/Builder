@@ -1,6 +1,8 @@
-This repository houses the task code for Builder, an ongoing research project on intertemporal choice. Nothing else about Builder has been published yet.
+This repository houses the task code for `Builder`_, a research project on intertemporal choice.
 
 `Tversky`_ is required, as is access to a machine running `Rserve`_ with `adaptive-server`_.
+
+Note that the description of ``@test_quartets`` embedded in the source of ``builder_task`` erroneously omits ``8*7`` from  ``adaptive_delays``.
 
 License
 ============================================================
@@ -11,6 +13,7 @@ This program is free software: you can redistribute it and/or modify it under th
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the `GNU General Public License`_ for more details.
 
+.. _Builder: http://arfer.net/projects/builder
 .. _Tversky: https://github.com/Kodiologist/Tversky
 .. _Rserve: http://www.rforge.net/Rserve/
 .. _adaptive-server: https://github.com/Kodiologist/adaptive-server
